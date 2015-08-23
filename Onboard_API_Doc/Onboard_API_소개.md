@@ -72,111 +72,111 @@ DJI MATRICE 100는 다양한 장비를 보드에 탑재할 수 있도록 넓은 
 <br>  
 ####일반 시스템 설명
 
-The core components are MATRICE 100 and a device installed on it. The onboard device connects to the autopilot of MATRICE 100 (N1 Autopilot) by a serial cable. The onboard device can be any small sized computing device that is able to perform serial communication and AES encryption.
+MATRICE 100과 여기에 설치된 장치가 핵심 컴포넌트다. onboard 장치는 MATRICE 100 자동 파일럿(N1 Autopilot)에 시리얼 케이블로 연결되어 있다. onboard 장치는 시리얼 통신이 가능하고 AES 암호화를 수행할 수 있는 작은 크기의 컴퓨팅 장치면 가능하다.
 
-DJI N1 PC assistant software can configure MATRICE 100 serial port and upgrade firmware of MATRICE 100. It is a tool similar to other DJI PC-based software. This software is simplified  to have only a few functions that cannot be done by DJI new generation assistant software - DJI Pilot, such as firmware upgrade and serial port configuration.
+DJI N1 PC 보조 소프트웨어는 MATRICE 100 시리얼 포트를 구성하고 MATRICE 100 펌웨어를 업그레이드할 수 있다. 다른 DJI PC기반 소프트웨어와 유사한 도구이다. 이 소프트웨어는 DJI의 새로운 보조 소프트웨어가 제공하지 않는 몇가지 가지고 있다.(펌웨어 업그레이드와 시리얼 포트 구성)
 
-Due to the safety concern, since onboard API allows developers to implement autonomous UAV systems beyond line-of-sight, DJI has to impose more restricted control registration methods for MATRICE 100. Before using MATRICE 100, a developer must register his personal information on _dev.dji.com_ and then activate his MATRICE 100. DJI Server will provide an APP ID and an AES key to the developer. Most parts of the communication between the onboard device and MATRICE 100 is encrypted by this key, which reaches MATRICE 100 separately during activation progress. The activation and encryption will be explained in detail in the "Active Command Set" section.
+안전과 관련해서 onboard API는 엄청난 권한을 개발자에게 자동화 UAV 시스템 구현을 제공하므로, DJI는 MATRICE 100에 대해서 더욱 엄격한 제어 등록 방법을 사용한다. MATRICE 100을 사용하기 전에, 개발자는 반드시 _dev.dji.com_ 에 개인정보를 등록해야만 하고 MATRICE 100을 활성화해야 한다. DJI 서버는 APP ID와 AES key를 개발자에게 제공할 것이다. onboard 장치와 MATRICE 100 사이의 대부분의 통신은 이 key로 암호화된다. 이것은 활성화 단계 동안 별도로 MATRICE 100에 접근하는 것이다. 활성화와 암호화는 "Active Command Set"에서 상세히 다룬다.
 
-Diagram of System Structure:
+시스템 구조 다이어그램 :
 ![systemDiagram](Images/systemDiagram.png)
 
-Diagram of registration and activation process:
+등록과 활성화 단계 다이어그램 :
 ![registrationDiagram](Images/registrationDiagram.png)
 
-An important concept in the activation process is the Device Available Number (DAN). It has following properties:
-+ Each APP ID has a DAN, which means the maximum number of autopilots to be activated to support the APP by developer with the same APP ID.
-+ By default, DAN is limited to 5 for a new APP ID.
-+ When autopilot reaches DJI Server during an activation process, the DAN of the APP ID increases 1. If the DAN equals to the limit, new activation request will not be permitted.
-+ Developers should apply on _dev.dji.com_ to increase the limit of DAN of their APP IDs.
+활성화 단계에서 중요한 개념은 DAN(Device Available Number)이다. 다음과 같은 속성을 지닌다 :
++ 각 APP ID는 DAN을 가진다. 이는 동일한 APP ID를 가지고 있는 개발자가 해당 App을 지원하기 위해서 활성화할 수 있는 autopilot의 최대 숫자를 뜻한다.
++ 기본으로 DAN은 새로운 APP ID에 대해서 5개로 제한된다.
++ 활성화 단계동안 autopilot는 DJI 서버에 연결할 때, APP ID의 DAN이 1 증가한다. 만약 DAN이 제한된 수와 같아지면, 새로운 활성화 요청을 허가하지 않는다.
++ 개발자는 APP ID의 DAN 제한을 늘리고 싶다면 _dev.dji.com_ 에 신청해야 한다.
 
 <br>
 ####Remote Controller, Onboard API & Mobile API
 
-DJI Matrice Multirotor is designed to be controlled by Remote Controller (RC), onboard device and mobile device. The standard assistant software “DJI Pilot” for DJI Inspire 1 and Phantom 3 can also be used on the platform. Also DJI Mobile SDK is applicable to the platform, so the platform can be controlled via mobile API (please visit _dev.dji.com_ to learn more about DJI Mobile SDK). Since there are three possible control inputs, it is necessary to prioritize them.  
+DJI Matrice 드론은 리모트 컨트롤러, onboard 장치, 모바일 장치로 제어되도록 설계되었다. DJI Inspire 1과 Phantom 3를 위한 표준 보조 소프트웨어인 "DJI Pilot"는 해당 플랫폼에서 사용할 수 있다. 또한 DJI Mobile SDK는 플랫폼에 적용되며 해당 플랫폼은 mobile API를 통해 제어할 수 있다.(자세한 내용은 _dev.dji.com_을 방문해서 DJI Mobile SDK에 대해서 알아보자) 3가지 가능한 입력이 있으므로 이것들 사이에 우선순위가 필요하다.
 
-RC is designed to be the primary input source. It can decide whether the flight control is allowed to grant control authority to onboard device and mobile device or not. The F (stands for function) position of the RC controls the flight controller to enter several functions including IOC and API control mode. The flight controller can enter API control mode if the following settings are done:
+RC는 주요 입력 소스로 설계되었다. 이를 통해 비행 제어가 onboard 장치나 모바일 장치에 권한을 주는 것을 허용한다. RC 컨트롤의 F(function을 뜻함)는 IOC와 API 제어 모드를 포함한 여러 기능을 사용하기 위한 비행 컨트롤러를 제어한다. 다음과 같은 설정을 따르면 비행 컨트롤러는 API 제어 모드로 들어간다:
 
-1. “enable API control” box is ticked in PC assistant software (See example below for more details).
-2. IOC mode is turned off (Use DJI Pilot App to check this setting).
-3. RC mode selection bar to F position (see the below figure).
+1. PC 보조 소프트웨어에서 “enable API control” 박스를 체크 (아래 예제에서 상세히 알아보자).
+2. IOC 모드는 끄기 (이 설정을 확인하기 위해서는 DJI Pilot 사용)
+3. RC 모드 선택 bar를 F에 위치 시키기 (아래 그림 참고)
 
-If RC allows the flight controller to enable API control, onboard API and mobile API can request control authority using their API request functions. Mobile API is designed to have higher control priority than onboard API. If mobile API has the control authority, onboard API cannot obtain the control authority.
+만약 RC가 비행 컨트롤러가 API 제어를 가능하게 허용하면, onboard API와 모바일 API는 API 요청 기능을 이용해서 제어 권한을 요청할 수 있다. Mobile API는 onboard API보다 더 우선 순위가 높은 제어 권한을 요청할 수 있다. 만약 모바일 API가 제어 우선순위를 가지면 onboard API는 제어 권한을 얻을 수 없다.
 
 ![rc](Images/controller.png)
 
+이 문서는 onboard API를 소개하는데 초점을 맞춘다. 모바일 API는 onboard API와 함께 사용하지 않는 것을 가정한다.
 
-This document focuses on introducing the onboard API. It assumes mobile API is not used along with onboard API.
-
-**In the current version, hybrid control (using both mobile API and onboard API) is not fully supported.** 
+**현재 버전에서 하이브리드 컨트롤(모바일 API와 onboard API 모두 사용)는 완벽하게 지원되지 않는다.
+**
 
 <br>
-####Command Authorization Levels
+####명령 인증 레벨(Command Authorization Levels)
 
-When a developer registers on _dev.dji.com_, an authorization level will be assigned to him according to his programming experience and the application requirements. The developer must save his authorization level (app_api_level) to the onboard device. This app_api_level will be checked during activation process.  
+개발자가 _dev.dji.com_ 에 등록할 때, 등록자의 프로그래밍 개발 경험과 요구에 따라서 인증 레벨을 받게 된다. 개발자는 반드시 onboard 장치에 자신의 인증 레벨(app_api_level)을 저장해야 한다. 이 app_api_level은 활성화 단계에서 검사한다.
 
-Different authorization levels unlock different commands the developer can use.  
+인증 레벨에 따라서 개발자가 사용할 수 있는 명령이 달라진다.  
 
-+ Level 0, activation related commands
-+ Level 1, monitor and non-flight control, including camera and gimbal control, flight data monitoring. This level does not involve direct control of craft motion.
-+ Level 2, flight control. It contains not only motion control, but also some flight mode changing control commands. 
++ Level 0, 활성화와 관련된 명령
++ Level 1, 모니터와 비행 제어 이외(카메라나 gimbal 제어, 비행 데이터 모니터링). 이 레벨은 비행의 모션 제어와 직접적으로 관련이 없다.
++ Level 2, 비행 제어. 모션 제어뿐만 아니라 일부 비행 모드 변경 제어 명령을 포함한다. 
 
-In future onboard API, we will release more commands with different authorization levels. 
+향후 onboard API에서 여러 인증 레벨로 더 많은 명령을 제공할 예정이다.
  
 <br>
-###[ROS based] Wireless control of DJI MATRICE 100 
+###[ROS 기반] MATRICE 100의 무선 제어
 
-This example uses sample code `dji_keyboard_ctrl` to control MATRICE 100 remotely. The code is based on ROS package `keyboardteleopjs`. We have created a simple HTML GUI to make developers familiar with controlling MATRICE 100 using keyboard and mouse.  
+이 예제에는 MATRICE 100을 원격으로 제어하기 위해서 `dji_keyboard_ctrl` 예제 코드를 사용한다. 이 코드는 ROS 패지키인 `keyboardteleopjs`을 기반으로 한다. 사용자가 키보드나 마우스로 MATRICE 100을 제어하는데 익숙해지도록 단순한 HTML GUI를 만든다.
  
 <br>
-####Hardware Checklist
+####하드웨어 체크리스트
 
-1. DJI Matrice Developer Multirotor MATRICE 100
-2. DJI serial cable (included in the MATRICE 100 accessories)
-3. [DuPont line](http://miniimg.rightinthebox.com/images/384x384/201211/mfbiot1354248218185.jpg) 10-20pcs (can be purchased from any electronic components distributor)
-4. [433(434)](http://www.seeedstudio.com/depot/434Mhz-Wireless-Serial-Transceiver-Module-40-Meters-p-1732.html) wireless serial transceiver module 2pcs 
-5. [USB to TTL](http://www.adafruit.com/product/954) serial cable 1pc <br>
-**Note**: PL2303 driver is needed to use the USB to TTL serial cable on Windows/Mac. 
+1. DJI Matrice 개발자 멀티로터 MATRICE 100
+2. DJI 시리얼 케이블(MATRICE 100 악세사리에 포함)
+3. [DuPont line](http://miniimg.rightinthebox.com/images/384x384/201211/mfbiot1354248218185.jpg) 10-20pcs (전자부품 파는 곳에서 구매 가능)
+4. [433(434)](http://www.seeedstudio.com/depot/434Mhz-Wireless-Serial-Transceiver-Module-40-Meters-p-1732.html) 무선 시리얼 트랜시버 모듈 2pcs 
+5. [USB to TTL](http://www.adafruit.com/product/954) 시리얼 케이블 1pc <br>
+**주의**: PL2303 드라이버는 윈도우/맥에서 USB를 TTL 시리얼 케이블로 사용하는데 필요하다.
 6. [5V DC-DC Converter](http://www.adafruit.com/products/1385) <br>
-**Note**:  MATRICE 100 does not provide 5V power, so the serial transceiver module must be powered with external DC-DC converter. 
+**주의**:  MATRICE 100은 5V 파워를 제공하지 않는다. 따라서 시리얼 트랜시버 모듈은 반드시 외부 DC-DC 컨버터로 전원을 받아야만 한다. 
 
 <br>
-####Software Checklist
+####소프트웨어 체크리스트
 
-1. Windows PC with DJI N1 PC assistant software.
-2. Mobile Device with DJI Pilot (newest version) installed. The device must have Internet access.
-3. Linux PC (or embedded device) with Ubuntu 14.04 (or higher) and ROS Indigo (or higher). The sample code is tested on ROS Indigo only.
-4. ROS package rosbridge_server 
-5. Sample code "dji_sdk" and "dji_keyboard_ctrl"
+1. DJI N1 PC 보조 소프트웨어 설치된 윈도우 PC
+2. 최신 DJI Pilot가 설치된 모바일 장치. 이 장치는 반드시 인터넷 접속이 되어야만 한다.
+3. 우분투 14.04가 설치된 리눅스 PC(혹은 임베디드 장치)와 ROS Indigo(혹은 상위 버전). 예제 코드는 ROS Indigo에서만 테스트 되었다.
+4. rosbridge_server ROS 패키지
+5. 예제 코드 "dji_sdk"와 "dji_keyboard_ctrl"
 
 <br>
-####Setup Step
+####설정 단계
 
-#####Prepare MATRICE 100
+#####MATRICE 100 준비
 
-Power on MATRICE 100 and connect it to PC. DJI N1 PC assistant software allows users to update firmware and configure MATRICE 100 in order to enable API control mode.
+MATRICE 100에 전원을 주고 PC에 연결한다. DJI N1 PC 보조 소프트웨어는 API 제어 모드를 사용하기 위해서 사용자가 펌웨어를 업데이트하고 MATRICE 100을 설정해야 한다.
 
-On tab `Basic`, developers can select `enable API control` to enable remote controller and make MATRICE access functions related to API control. Developers may alter the serial baud rate and data package content in `Baud Rate & Message Setting`.
+`Basic` 탭에서 개발자는 `enable API control`를 선택하여 원격 컨트롤러 사용을 가능하게 하고 MATRICE가 API 제어와 관련된 접근 기능을 사용할 수 있게 해야한다. 개발자는 `Baud Rate & Message Setting`에서 시리얼 전송 속도와 데이터 패키지 내용을 변경할 수 있다.
 
 ![N1UI](Images/N1UI.png)
 
-After API control mode enabled, developers can switch to mode selection bar on remote controller into the middle position (F position) to enable API control.
+API 제어 모드를 설정한 후에, 개발자는 API 제어를 가능하기 하기 위해서 리모트 컨트롤러에 모드 선택 바를 가운데 위치(F 위치)로 변경한다.
 
 <br>
-#####Establish communication link
+#####통신 링크 수립(Establish communication link)
 
-Configure the 433 transceivers to the baud rate 115200 (different transceivers may have different initialization steps). Connect one transceiver to PC through the USB to TTL cable and the other transceiver to the autopilot of MATRICE using DJI serial cable. Be careful with the transceiver on MATRICE 100, whose power must come from the 5V DC-DC converter and it can draw power from MATRICE 100 battery.
+433 트랜시버를 115200 전송속도로 설정한다.(다른 트랜시버는 다른 초기화 단계를 가질 수도 있다.) USB를 TTL 케이블로 하나의 트랜시버를 PC에 연결하고 다른 트랜시버는 DJI 시리얼 케이블을 이용해서 MATRICE의 autopilot에 연결한다. MATRICE 100에 트랜시버는 주의하자. 5V DC-DC 컨버터로부터 전원을 공급받고 MATRICE 100 배터리에서 전원을 끌어다 쓸 수 있기 때문이다.
 
 <br>
-#####Run sample code
+#####예제 코드 실행
 
-1. Compile ROS package dji_sdk.
-2. Start roscore, and then start rosbridge server in a new terminal.
+1. ROS 패지지인 dji_sdk 컴파일 하기
+2. roscore 시작시키고 새 터미널에서 rosbridge 서버 시작하기
 
         roslaunch rosbridge_server rosbridge_websocket.launch
-3. Use the launch file in the sample code to start dji_sdk_node.
+3. 예제 코드내에 있는 런치 파일을 이용해서 dji_sdk_node 시작하기
 
-  Following is the sample launch file
+  다음은 예제 런치 파일이다.
   
   ```xml
   <launch>
@@ -192,7 +192,7 @@ Configure the 433 transceivers to the baud rate 115200 (different transceivers m
   </node>
   </launch> 
   ```
- The node parameters are:
+ node 인자는 다음과 같다 :
  
  |Name|Type|Explanation|
  |----|----|-----------|
@@ -204,12 +204,12 @@ Configure the 433 transceivers to the baud rate 115200 (different transceivers m
  |app_bundle_id|String|The APP bundle ID assigned by _dev.dji.com_ server to developer when registration.|
  |enc_key|String|The encryption key assigned by dev.dji.com server to developer when registration.|
  
- **Note: This command must be run as root. (i.e. `sudo su` first).**
+ **주의: 이 명령은 반드시 root 권한으로 실행해야만 한다. (i.e. `sudo su` 먼저).**
      
       sudo su
       roslaunch dji_sdk sdk_demo.launch
 
-4. Edit `sdk_keyboard_demo.html`. Change the address in the URL to the Linux machine hostname, localhost/127.0.0.1 when single machine and the LAN IP when running ROS multi-machine.
+4. `sdk_keyboard_demo.html` 수정. 리눅스 머신의 호스트 이름으로 URL 주소를 변경한다. 단일 머신일 경우에는 localhost/127.0.0.1 이며 ROS 여러 머신이 실행 중일 때는 LAN IP로 한다.
 
     ```c
     function init() {
@@ -220,7 +220,7 @@ Configure the 433 transceivers to the baud rate 115200 (different transceivers m
     } 
     ```
 
-5. Open `sdk_keyboard_demo.html` in web browser. `rosbridge_server` will print log showing new client connected. If not, please check your connection settings in step 4. After the html page is connected to `rosbridge_server`, the web GUI will display flight status and it is also possible to check flight status directly by `rostopic`.
+5. 웹브라우져에서 `sdk_keyboard_demo.html`를 연다. `rosbridge_server`는 새로 연결된 client를 보여주는 로그를 출력한다. 만약 제대로 출력되지 않는다면 step 4에 있는 연결 설정을 확인한다. html 페이지가 `rosbridge_server`에 연결된 이후, web GUI는 비행 상태를 보여주고 `rostopic`으로 직접 비행 상태를 확인하는 것이 가능하다.
 
 <br>
 #####Test communication link
