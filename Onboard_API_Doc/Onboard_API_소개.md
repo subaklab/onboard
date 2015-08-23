@@ -226,7 +226,6 @@ API 제어 모드를 설정한 후에, 개발자는 API 제어를 가능하기 �
 #####통신 링크 테스트
 
 web GUI에서 `Activation` 버튼을 클릭한다. 만약 통신 링크가 사용할 준비가 되었다면, MATRICE 100은 해당 GUI에게 알린다. 만약 제대로 동작하지 않으면 트랜시버와 MATRICE 100 설정을 디버깅하자.
-On the web GUI, click button `Activation`. If the communication link is ready to use, MATRICE 100 will acknowledge the GUI. If not, please debug your transceivers and MATRICE 100 settings.
 
 <br>
 #####API를 사용하기 위해 MATRICE 100 활성화
@@ -236,34 +235,34 @@ On the web GUI, click button `Activation`. If the communication link is ready to
 #####MATRICE 100 제어
 web GUI는 아래 보는 바와 같이 제어 버튼을 가지고 있다. 더우기 `W`,`A`,`S`,`D` 키는 MATRICE가 수평으로 움직이게 하고 `Z`, `C`는 수직 속도를 변경하고 `Q`, `E`는 yaw 움직임을 제어한다. 개발자는 web GUI를 통해서 이런 기능을 사용할 수 있지만 먼저 충분히 테스팅 가능한 공간을 확보해야한다. 
 
-The horizontal movement is controlled by angle command associated with button `W`,`A`,`S`,`D`. The angular speed is `5*speed_level`. `speed_level` is an inner variable with default value 1. The value can be changed using key `123456`. Be careful when you are working with high angular speed, MATRICE 100 will accelerate quickly.
+수평 움직임은 `W`,`A`,`S`,`D` 버튼과 관련된 angle 명령으로 제어된다. angular 속도는 `5*speed_level`이다. `speed_level`는 기본 값이 1인 내부 변수이다. 이 값은 `123456` 키를 이용해서 변경할 수 있다. 높은 angular 속도로 작업하는 경우 주의해야 한다. MATRICE 100은 빠르게 가속되기 때문이다.
 
 <img src="Images/webGUI.png" width="200">
 
 <br>
-#####Safety Flight
+#####안전 비행
 
-MATRICE 100 only responses to serial control command when the remote controller’s mode selection bar is at its middle position (F position).  Anytime when user switches the mode away from F position, the API control mode is turned off. We recommend two developers work together during the testing. One developer controls the web GUI, while the other developer hold the remote controller for emergency use.  
-If the user wants to switch back to F position and reenter the API mode, onboard application does not need to send control request again to get control authority. If the mode selection bar is already at F position when MATRICE 100 is powered on, then user must switch back and forth to enable API control mode. This mechanism can prevent MATRICE 100 from executing automatic applications without user permission.  
+리모트 컨트롤러의 모드 선택 바가 중간 위치(F 위치)인 경우일 때만, MATRICE 100은 시리얼 제어 명령에 응답한다. 사용자가 F 위치에서 다른 모드로 변경하면 API 제어 모드는 중지된다. 테스팅할 때, 2명의 개발자가 함께 작업하는 것을 권장한다. 한명은 web GUI를 제어하고 다른 사람은 긴급상황을 대비해서 리모트 컨트롤러을 가지고 있어야 한다.
+사용자가 다시 F 위치로 전환해서 API 모드에 다시 들어가고자 한다면, onboard app은 제어 권한을 얻기 위해서 제어 요청을 보내지 않아도 된다. MATRICE 100이 켜져있고 만약 모드 선택 바가 이미 F 위치에 있다면, 사용자는 반드시 API 제어 모드를 가능하게 하기 위해서 스위치를 껐다켰다 해야만 한다. 이 방식은 MATRICE 100가 사용 허가가 없는 경우 자동으로 app이 실행되는 것을 막기 위해서다.
  
 ---
 <br>
-## Onboard API Programming Guide
+## Onboard API 프로그래밍 가이드
 
-This part discusses the protocol programming when communicating with MATRICE 100.
-We recommend developers follow quick start first to run our sample code before reading this programming guide.
+이 부분은 MATRICE 100과 통신할 때, 프로토콜 프로그래밍에 대해서 알아본다.
+이 프로그래밍 가이드를 읽기 전에 예제 코드를 실행하기 위해서 먼저 빠른 시작 부분을 숙지하는 것을 추천한다.
 
 <br>
-### Protocol Description
+### Protocol 상세 설명
 
-#### Protocol Frame Format
+#### Protocol Frame 포맷
    ```
    |<--------------Protocol Frame Header---------------->|<--Protocol Frame Data-->|<--Protocol Frame Checksum-->|
    |SOF|LEN|VER|SESSION|A|RES0|PADDING|ENC|RES1|SEQ|CRC16|          DATA           |            CRC32            |
    ```
  
 <br> 
-#### Protocol Frame Explanation
+#### Protocol Frame 설명
 <table>
 <tr>
   <th>Field</th>
@@ -360,18 +359,18 @@ We recommend developers follow quick start first to run our sample code before r
 </tr>
 </table>
 
-Frame data size varies, 1007 is the maximum length. The index of the CRC32 depends on the length of data field.
+Frame 데이터 크기는 가변이며 1007이 최대 길이이다. CRC32의 인덱스는 data 필드의 길이에 따른다.
 
 <br>
-#### Protocol Data Field Explanation
+#### Protocol Data Field 설명
 
-All serial packages exchanged between MATRICE 100 and the onboard device can be classified into three types:
-1. Command Package. From the onboard device to MATRICE 100. It mainly contains flight control commands.
-2. Message Package. From MATRICE 100 to the onboard device. It contains the autopilot data.
-3. Acknowledgement Package (ACK package). From MATRICE 100 to the onboard device. It contains execution results of commands.
+MATRICE 100과 onboard 장치 사이에 교환되는 모든 시리얼 패키지는 3개 타입으로 분류한다 :
+1. 명령 패키지(Command Package). onboard 장치 -> MATRICE 100. 주로 비행 제어 명령을 포함하고 있다.
+2. 메시지 패키지(Message Package). MATRICE 100 -> onboard 장치. 주로 autopilot 데이터를 포함하고 있다.
+3. ACK 패키지(Acknowledgement Package, ACK package). MATRICE 100 -> onboard 장치. 명령 실행 결과를 포함하고 있다.
 
 <br>
-##### Package from the onboard device to MATRICE 100 (Command Package)
+##### onboard 장치 -> MATRICE 100으로 Package (Command Package)
 ```
 |<-------Protocol Frame Data------->|
 |COMMAND SET|COMMAND ID|COMMAND DATA|
@@ -382,10 +381,10 @@ All serial packages exchanged between MATRICE 100 and the onboard device can be 
 |COMMAND ID|1|1|
 |COMMAND DATA|2|depends on the exact command|
 
-For the detailed description, please refer to `Command Set Explanation: control commands`
+자세한 설명을 위해 `Command Set Explanation: control commands`을 참조하자.
 
 <br>
-##### Package from the autopilot to onboard device (Message Package)
+##### autopilot -> onboard 장치로 Package (Message Package)
 ```
 |<-------Protocol Frame Data------->|
 |COMMAND SET|COMMAND ID|COMMAND DATA|
@@ -396,10 +395,10 @@ For the detailed description, please refer to `Command Set Explanation: control 
 |COMMAND SET|0|1|
 |COMMAND ID|1|1|
 |COMMAND DATA|2|depends on the exact command|
-For the detailed description, please refer to `Command Set Explanation: monitor commands`
+자세한 설명을 위해 `Command Set Explanation: monitor commands`을 참조하자.
 
 <br>
-##### Package from the autopilot to onboard device (ACK package)
+##### autopilot -> onboard 장치로 Package (ACK package)
 
 ```
 |<-Protocol Frame Data->|
@@ -412,10 +411,10 @@ For the detailed description, please refer to `Command Set Explanation: monitor 
 |ACK DATA|2|depends on the exact command|Return data|
 
 <br>
-#### Session
-An important requirement of autonomous control is the communication reliability. We design a "session mechanism" to make sure command packages and ACK packages are exchanged successfully.
+#### 세션(Session)
+자동 제어의 중요 요구사항은 통신의 신뢰성이다. 명령 패키지와 ACK 패키지가 성공적으로 교환되었다는 것을 확인하기 위해 "세션 매커니즘(session mechanism)"을 설계했다.  
 
-When developers compiles a message package in the onboard device program, a session ID should be used depending on the reliability requirement. Different session IDs correspond to different communication channels, i.e. sessions. Onboard API serial link layer has three types of sessions (for brevity, in the following table, we use Sender referring onboard device and Receiver as the autopilot of MATRICE 100).
+개발자가 onboard 장치 프로그램에 메시지 패키지를 컴파일할 때, 세션 ID는 신뢰성 요구사항을 기반으로 사용해야 한다. 각 세션 ID는 각 통신 채널에 대응한다. Onboard API 시리얼 링크 계층은 3가지 세션 타입을 가지고 있다.(아래 테이블을 참고하며, sender는 onboard 장치를 말하며 receiver는 MATRICE 100을 가리킨다.)
 
 |Session Mode|SESSION|Description|
 |------------|-------|-----------|
@@ -424,9 +423,9 @@ When developers compiles a message package in the onboard device program, a sess
 |Mode 3|2-31|Sender wants to make sure the ACK is reliably sent. For these sessions, Receiver saves the sequence number in the command package and send an  ACK package upon receiving it. If ACK package loss happened, Sender may request Receiver again using the same command package with the same sequence number, and Receiver will reply by sending saved acknowledge result. Unless Sender sends a new sequence number, Receiver will not forget the last command acknowledge result|
 
 <br>
-#### API Example
+#### API 예제
 
-Use the following enum to represent the session mode:
+세션 모드를 표현하기 위해 아래와 같은 enum을 사용한다 :
 ```c
 enum SESSION_MODE {
   SESSION_MODE1,
@@ -435,15 +434,15 @@ enum SESSION_MODE {
 }
 ```
 
-And define a callback function to handle the return data of the command:
+그리고 명령의 반환 데이터를 처리하기 위해서 callback 함수를 정의한다 :
 
     typedef void (*CMD_CALLBACK_FUNC)(const void* p_data, unsigned int n_size)
 
-Finally we define 
+마지막으로 아래와 같이 정의한다
 
     unsigned int Linklayer_Send(SESSION_MODE session_mode, const void* p_data, unsigned int n_size, char enc_type, unsigned short ack_timeout, unsigned char retry_time, CMD_CALLBACK_FUNC cmd_callback)
 
-Arguments explained:
+인자 설명 :
 
 |Argument|Description|
 |--------|-----------|
@@ -454,14 +453,15 @@ Arguments explained:
 |retry_time|When using session 3, this parameter decides how many times to retry|
 |cmd_callback|The function pointer to the callback function|
 
-**Note: Here a dummy link layer send interface is defined for demonstration purpose. Since Session Mode 3 is reliable, the communication function interface should contain parameters such as length of timeout and number of resending times.**
+**주의: 여기서 더미 링크 계층이 보내는 인터페이스는 보여주는 목적으로 정의했다. Session Mode 3은 신뢰할 수 있으므로 통신 기능 인터페이스는 타임아웃의 길이와 재전송 횟수와 같은 인자를 포함해야 한다.
+Here a dummy link layer send interface is defined for demonstration purpose. Since Session Mode 3 is reliable, the communication function interface should contain parameters such as length of timeout and number of resending times.**
 
 <br>
-### Command Set Explanation
+### 명령 집합 설명(Command Set Explanation)
 
-#### Command Set and Authorization Level
+#### 명령 집합과 인증 레벨(Command Set and Authorization Level)
 
-The DJI onboard API has three sets or categories of commands:
+DJI onboard API는 3가지 집합 혹은 명령 카테고리를 가지고 있다 :
 
 |Category|Description|Command Set ID|
 |--------|-----------|--------------|
@@ -469,9 +469,9 @@ The DJI onboard API has three sets or categories of commands:
 |Control related|Commands to control MATRICE 100|0x01|
 |Monitoring related|Commands that contains autopilot data|0x02|
 
-Each command set has a unique set ID. All commands belong to one command set have different command ID.
+각 명령 집합은 유일한 집합 ID를 가진다. 모든 명령은 하나의 명령 집합에 속하며 서로 다른 명령 ID를 가진다.
 
-All control commands have an associated authorization level. In the current version, we have set up 5 stable control commands and several unstable commands. All these controls command are level 2 API. In the standard version and future versions, more control commands will be opened up at different authorization levels. A tentative level schedule is shown as follow:
+모든 제어 명령은 관련 인증 레벨을 가지낟. 현재 버전에서 5가지 안정 제어 명령과 여러 불안정한 명령들을 설정한다. 이런 제어 명령 모두 level 2 API이다. 표준 버전과 향후 버전에서 더 많은 제어 명령이 다른 인증 레벨로 공개될 예정이다. 예상하는 level 일정은 아래와 같다.
 
 |API Levels|Brief Plan|
 |----------|----------|
@@ -480,14 +480,14 @@ All control commands have an associated authorization level. In the current vers
 |2|Flight control commands|
 
 <br>
-####Command Sets
+####명령 집합(Command Sets)
 
-#####Activation Command Set: 0x00
+#####활성화 명령 집합(Activation Command Set: 0x00)
 
-To activate the API, session ID 2-31 can be used to guarantee ACK packages are returned. All commands in this command set has authorization level 0. Therefore, all users can use these commands to activate MATRICE 100 and debug the connection status. The activation process allows MATRICE 100 to connect to Internet via DJI Pilot and of course a mobile device with Internet access is needed.
+API를 활성화하기 위해서 세션 ID 2-31은 ACK 패키지가 반환된다는 것을 보장하기 위해 사용할 수 있다. 이 명령 집합내에 있느느 모든 명령은 인증 레벨 0을 가진다. 따라서 모든 사용자는 MATRICE 100을 활성화 하기 위해서 이 명령을 사용하고 연결 상태를 디버깅한다. 활성화 절차는 MATRICE 100이 DJI Pilot을 통해서 인터넷에 연결하도록 하며 물론 인터넷 접속된 mobile 장치가 필요하다.
 
 <br>
-###### Command ID 0x00: Get API version
+###### 명령 ID 0x00: API 버전을 얻기 (Command ID 0x00: Get API version)
 <table>
 <tr>
   <th>Data Type</th>
@@ -524,7 +524,7 @@ To activate the API, session ID 2-31 can be used to guarantee ACK packages are r
 </table>
 
 
-Recommended receiving C/C++ struct
+추천하는 수신 C/C++ 구조체
 ```c
 typedef struct {
   unsigned short version_ack;
@@ -533,7 +533,7 @@ typedef struct {
 } version_query_data_t;
 ```
 
-Set the callback function of getting API version be:
+API 버전을 얻는 callback 함수 설정 :
 ```c
 void print_sdk_version(const void* p_data, unsigned int n_size) {
   version_quesry_data_t* p_version = (version_query_data_t*)p_data;
@@ -543,7 +543,7 @@ void print_sdk_version(const void* p_data, unsigned int n_size) {
 }
 ```
 
-To send getting API version package, we can use the following code:
+API 버전 패키지 얻기를 보내기 위해서 다음 코드를 사용할 수 있다 :
 ```c
 unsigned char cmd_buf[3];
 cmd_buf[0] = 0x00; //command set
@@ -559,12 +559,12 @@ Linklayer_Send(SESSION_MODE3,
 };
 ```  
 
-Session Mode 3 is used to get API version. After the autopilot receives request and responses, function print\_sdk\_version will executed and print the version information:
+Session Mode 3은 API 버전을 얻는데 사용한다. autopilot이 요청과 응답을 받은 후에, 함수 print_sdk_version가 실행되고 버전 정보를 아래와 같이 출력한다 :
 
     SDK vX.X XXXX
 
 <br>
-###### Command ID 0x01: Activate API
+###### 명령 ID 0x01 : 활성화 API (Command ID 0x01: Activate API)
 
 <table>
 <tr>
@@ -609,7 +609,7 @@ Session Mode 3 is used to get API version. After the autopilot receives request 
 </table>
 
 <br>
-Recommended sending C/C++ struct
+추천하는 보내기 C/C++ 구조체
 ```c
 typedef __attribute_((__packed__)) struct { //1 byte aligned
   unsigned int app_id;
@@ -618,9 +618,9 @@ typedef __attribute_((__packed__)) struct { //1 byte aligned
   unsigned char app_bundle_id[32];
 } activation_data_t;
 ```
-**Note: All the structs in the document requires 1 byte alignment (for example using `typedef __attribute__((__packed__))` struct. Developers must make sure their structs are 1-byte aligned.**
+**주의: 이 문서에 있는 모든 구조체는 1 byte alignment가 필요하다.(`typedef __attribute__((__packed__))` 구조체를 사용한다) 개발자는 반드시 구조체가 1-byte aligned임을 확인해야 한다.**
 
-Recommended receive C/C++ enum data:
+추천하는 수신 C/C++ enum 데이터 :
 
 ```c
 enum ErrorCodeForActivatie {
@@ -635,14 +635,14 @@ enum ErrorCodeForActivatie {
 };
 ```
 
-Let the API activation callback function be
+API 활성화 callback 함수는 아래와 같다 
 ```c
 void activation_callback(const void* p_data, unsigned int n_size) {
 
 }
 ```
 
-To send API activation package, we can use following code piece:
+API 활성화 패키지를 보내기 위해서 다음과 같은 코드를 사용한다 :
 ```c
 unsigned char com_buf[46];
 activation_data_t activation_request_data;
@@ -665,12 +665,12 @@ Linklayer_Send(SESSION_MODE3,
   
 ```
 
-Session Mode 3 is used to activate API. After the autopilot receives request and responses, function `activation_callback` will be executed, in which developers can check whether API activation is successful or not.
+Session Mode 3은 API를 활성화 하는데 사용한다. autopilot은 요청을 받고 응답한 후에, 함수 `activation_callback`가 실행된다. 이를 통해 개발자는 API 활성화가 성공적인지 아닌지 검사할 수 있다.
 
 <br>
-###### Command ID 0xFE Data Transparent Transmission (from airborne equipment to mobile device)
+###### 명령 ID 0xFE : 데이터 전송(Data Transparent Transmission) (airborne 장비에서 모바일 장치로)
 
-The downstream bandwidth from airborne equipment to mobile device is around 8KB/s
+airborne 장비에서 모바일 장치로 다운스트림 대역폭은 대략 8KB/s 정도다.
 
 |Data Type|Offset|Size|Description|
 |---------|------|----|-----------|
@@ -693,20 +693,21 @@ Linklayer_Send(SESSION_MODE3,
 ```
 
 <br>
-##### Control Command: Set 0x01
+##### 제어 명령 : Set 0x01
 
-###### Command ID 0x00: Control Authority Request
+###### 명령 ID 0x00 : 제어 인증 요청(Control Authority Request)
 
 |Data Type|Offset|Size|Description|
 |---------|------|----|-----------|
 |Request Data|0|1|<ul><li>1 = request to get control authority</li><li>0 = request to release control authority</li></ul>|
 |Return Data|0|2|Return Code <ul><li>0x0001 = successfully released control authority</li><li>0x0002 = successfully obtained control authority</li><li>0x0003 = control authority failed to change</li></ul>
 
-There are three types of control devices:
-1. Remote Controller
-2. Mobile Device
-3. Onboard Device
+제어 장치의 3가지 타입 :
+1. 리모트 컨트롤러(Remote Controller)
+2. 모바일 장치
+3. Onboard 장치
 
+제어 우선순위는 '리모트 컨트롤러 > 모바일 장치 > Onboard 장치' 순이다. 모바일 장치는 mobile API를 통해서 MATRICE에 연결한다. 비슷한 제어 인증 요청 명령은 mobile API명령 집합에 존재한다. 따라서 onboard 장치가 시리얼 API를 통해서 제어 인증을 요청할 때, 제어 인증은 이미 모바일 app에 주어진 상황일 수 있다. 따라서 우선 순위 목록에 따라 모바일 장치는 제어를 얻는데 실패한다. 반명에 mobile API 제어 요청은 진행 중인 onboard API 제어를 인터럽트할 수 있다.
 The control priority is `Remote Controller > Mobile Device > Onboard Device`. Mobile devices connects to MATRICE via mobile API. A similar control authority request command exists in the mobile API command set. Therefore it is possible that when onboard device request control authority through serial API, control authority is already been granted to the mobile application. So according to the priority list, mobile device will fail to obtain control. Besides, mobile API control request can interrupt ongoing onboard API control.
 
 In the current  version, **hybrid control (using both mobile API and onboard API) is not fully supported.** Developer should take care of the priority issue when developing hybrid control application. A monitoring data `CTRL_DEVICE` can be used to check the control authority (see `Monitor Command Set 0x02`).
