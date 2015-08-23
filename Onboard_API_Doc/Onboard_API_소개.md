@@ -223,16 +223,18 @@ API 제어 모드를 설정한 후에, 개발자는 API 제어를 가능하기 �
 5. 웹브라우져에서 `sdk_keyboard_demo.html`를 연다. `rosbridge_server`는 새로 연결된 client를 보여주는 로그를 출력한다. 만약 제대로 출력되지 않는다면 step 4에 있는 연결 설정을 확인한다. html 페이지가 `rosbridge_server`에 연결된 이후, web GUI는 비행 상태를 보여주고 `rostopic`으로 직접 비행 상태를 확인하는 것이 가능하다.
 
 <br>
-#####Test communication link
+#####통신 링크 테스트
+
+web GUI에서 `Activation` 버튼을 클릭한다. 만약 통신 링크가 사용할 준비가 되었다면, MATRICE 100은 해당 GUI에게 알린다. 만약 제대로 동작하지 않으면 트랜시버와 MATRICE 100 설정을 디버깅하자.
 On the web GUI, click button `Activation`. If the communication link is ready to use, MATRICE 100 will acknowledge the GUI. If not, please debug your transceivers and MATRICE 100 settings.
 
 <br>
-#####Activate MATRICE 100 to use API
-Using DJI Pilot APP to connect the mobile device with the remote controller of MATRICE 100 and make sure the mobile device has Internet access. Then the activation process will be executed automatically after clicking the `Activation` button.
+#####API를 사용하기 위해 MATRICE 100 활성화
+모바일 장치를 MATRICE 100의 리모트 컨트롤러에 연결하기 위해서 DJI Pilot App을 사용하고 mobile 장치가 인터넷에 접속되었는지 확인한다. 그런 다음, 활성화 절차는 `Activation` 버튼을 클릭한 이후에 자동으로 실행될 것이다.
 
 <br>
-#####Control MATRICE 100
-The web GUI has control buttons as shown below. Moreover, key `W`,`A`,`S`,`D` allows MATRICE move horizontally, `Z`, `C` changes vertical velocity and `Q`,`E` controls yaw movement. Developers can try these functionalities via web GUI but please make sure you have enough testing space first.
+#####MATRICE 100 제어
+web GUI는 아래 보는 바와 같이 제어 버튼을 가지고 있다. 더우기 `W`,`A`,`S`,`D` 키는 MATRICE가 수평으로 움직이게 하고 `Z`, `C`는 수직 속도를 변경하고 `Q`, `E`는 yaw 움직임을 제어한다. 개발자는 web GUI를 통해서 이런 기능을 사용할 수 있지만 먼저 충분히 테스팅 가능한 공간을 확보해야한다. 
 
 The horizontal movement is controlled by angle command associated with button `W`,`A`,`S`,`D`. The angular speed is `5*speed_level`. `speed_level` is an inner variable with default value 1. The value can be changed using key `123456`. Be careful when you are working with high angular speed, MATRICE 100 will accelerate quickly.
 
