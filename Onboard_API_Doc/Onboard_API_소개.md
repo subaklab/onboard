@@ -707,21 +707,20 @@ Linklayer_Send(SESSION_MODE3,
 2. 모바일 장치
 3. Onboard 장치
 
-제어 우선순위는 '리모트 컨트롤러 > 모바일 장치 > Onboard 장치' 순이다. 모바일 장치는 mobile API를 통해서 MATRICE에 연결한다. 비슷한 제어 인증 요청 명령은 mobile API명령 집합에 존재한다. 따라서 onboard 장치가 시리얼 API를 통해서 제어 인증을 요청할 때, 제어 인증은 이미 모바일 app에 주어진 상황일 수 있다. 따라서 우선 순위 목록에 따라 모바일 장치는 제어를 얻는데 실패한다. 반명에 mobile API 제어 요청은 진행 중인 onboard API 제어를 인터럽트할 수 있다.
-The control priority is `Remote Controller > Mobile Device > Onboard Device`. Mobile devices connects to MATRICE via mobile API. A similar control authority request command exists in the mobile API command set. Therefore it is possible that when onboard device request control authority through serial API, control authority is already been granted to the mobile application. So according to the priority list, mobile device will fail to obtain control. Besides, mobile API control request can interrupt ongoing onboard API control.
+제어 우선순위는 '리모트 컨트롤러 > 모바일 장치 > Onboard 장치' 순이다. 모바일 장치는 mobile API를 통해서 MATRICE에 연결한다. 비슷한 제어 인증 요청 명령은 mobile API명령 집합에 존재한다. 따라서 onboard 장치가 시리얼 API를 통해서 제어 인증을 요청할 때, 제어 인증은 이미 모바일 app에 주어진 상황일 수 있다. 따라서 우선 순위 목록에 따라 onboard 장치는 제어를 얻는데 실패한다. 반면에 mobile API 제어 요청은 진행 중인 onboard API 제어를 인터럽트할 수 있다.
 
-In the current  version, **hybrid control (using both mobile API and onboard API) is not fully supported.** Developer should take care of the priority issue when developing hybrid control application. A monitoring data `CTRL_DEVICE` can be used to check the control authority (see `Monitor Command Set 0x02`).
+현재 버전에서 **하이브리드 제어(mobile API와 onboard API 동시 사용)은 아직 완전히 지원하지 않는다.** 하이브리드 제어 app을 개발할 때, 개발자는 우선순위 이슈를 신경써야 한다. 모니터링 데이터 `CTRL_DEVICE`는 제어 인증을 확인하는데 사용할 수 있다.(`Monitor Command Set 0x02`) 
 
-0x0003 happens when the mode selection bar of the remote controller is not in F position or control authority is already obtained by mobile application.
+리모트 컨트롤러의 모드 선택 바가 F 위치에 있지 않거나 제어 인증이 모바일 app에서 이미 얻은 경우 0x0003이 발생한다.
 
-Set the callback function for obtaining control authority is:
+제어 인증을 얻기 위한 callback 함수 설정은 다음과 같다 :
 ```c
 void get_control_callback(const void* p_data, unsigned int n_size) {
 
 }
 ```
 
-To send control request package, we can use following code piece 
+제어 요청 패키지를 보내기 위해서 다음과 같은 코드를 이용할 수 있다.
 ```c
 unsigned char cmd_buf[46];
 cmd_buf[0] = 0x01; //command set
@@ -736,14 +735,14 @@ Linklayer_send(SESSION_MODE3,
                 get_control_callback
 );
 ```
-Session Mode 3 is used to obtain control. After the autopilot receives request and responses, function `get_control_callback` will be executed, in which developer can check whether control authority is successfully changed or not.
+ Session Mode 3은 제어를 얻기 위해 사용한다. autopilot가 요청을 받거나 응답한 후에, 함수 `get_control_callback`이 실행될 것이다. 여기서 개발자는 제어 인증이 성공적으로 변경되었는지 여부를 확인할 수 있다.
 
 <br>
-###### Command ID 0x01-0x02 Flight Mode Control
+###### 명령 ID : 0x01-0x02 비행 모드 제어(Flight Mode Control)
 
-To control the flight mode of MATRICE 100, onboard device should use two commands to make sure the mode changing control works properly.
+MATRICE 100의 비행 모드를 제어하기 위해서, 모드 변경 제어가 제대로 동작하도록 하기 위해서 onboard 장치는 2개 명령을 사용해야 한다.
 
-Firstly, the command 0x01 should be sent to trigger the mode changing logic:
+우선 명령 0x01은 모든 변경 로직을 시작시키기 위해서 보낸다. 
 
 <table>
 <tr>
@@ -775,20 +774,20 @@ Firstly, the command 0x01 should be sent to trigger the mode changing logic:
 
 </table>
 
-Once MATRICE 100 receive command 0x01, an immediate ACK package contains either `0x0001` "reject" or `0x0002` "start to execute" will be sent. If the autopilot is already executing a flight mode command, a "reject" command is sent. In normal case, after sending the "start to execute" package, the autopilot will try to change its flight mode and making sure the changing is firmly done. The execution result will be saved.
+일단 MATRICE 100이 명령 0x01을 받으면, 즉시 `0x0001` "reject" 혹은 `0x0002` "start to execute"를 포함하는 ACK 패키지를 보낼 것이다. 만약 autopilot가 이미 비행 모드 명령을 실행했다면, "reject" 명령이 보내진다. 일반적인 경우 "start to execute" 패키지를 보낸 후에, autopilot는 flight mode를 변경하려고 하며 변경이 정확하게 수행되었다는 것을 확신하게 된다. 실행 결과는 저장될 것이다.
 
-The second command is a query from the onboard device to obtain the execution result.
+두번째 명령은 onboard 장치로부터 실행 결과를 얻기 위한 query이다.
 
 |Data Type|Offset|Size|Description|
 |---------|------|----|-----------|
 |Request Data|0|1|Command Sequence Number|
 |Return Data|0|1|Return code<ui><li>0x0001 = query failed, current command is not the query command</li><li>0x0003 = command is executing</li><li>0x0004 = command failed</li><li>0x0005 = command succeed</li></ui>
 
-These two commands, together with the "session mechanism", can guarantee the flight control command is executed and its execution result reaches the onboard device reliably.
+"세션 매커니즘"과 함께 이 2개 명령은 비행 제어 명령이 실행되었다는 것을 보장할 수 있고 실행 결과가 onboard 장치에 도착했다는 것을 신뢰할 수 있다.
 
 <br>
-###### Command ID 0x03 Movement Control
-**Please read the instructions carefully before sending commands.**
+###### 명령 ID : 0x03 이동 제어(Movement Control)
+**명령을 보내기 전에 주의사항을 주의 깊게 읽기 바란다.**
 
 <table>
 <tr>
@@ -839,7 +838,7 @@ These two commands, together with the "session mechanism", can guarantee the fli
 </table>
 
 <br>
-Recommend sending structure in C/C++
+C/C++에서 전송 구조체를 추천
 ```c
 typedef __attribute__((__packed__)) struct { // 1 byte aligned
   unsigned char ctrl_flag;
@@ -850,26 +849,26 @@ typedef __attribute__((__packed__)) struct { // 1 byte aligned
 } control_input;
 ```
 
-**Note: All the structs in the document requires 1 byte alignment (for example using `typedef __attribute__((__packed__))` struct. Developers must make sure their structs are 1-byte aligned.**
+**주의: 이 문서에 있는 모든 구조체는 1 byte alignment가 필요하다.(예로 `typedef __attribute__((__packed__))` 구조체를 사용) 개발자는 반드시 자신의 구조체가 1-byte aligned인 것을 확인해야만 한다.**
 
-Notice that depending on the value of ctrl\_flag, the four control inputs can have different meanings and represent control inputs in either body frame or ground frame. In the "Additional Explanation for Flight Control", body frame, ground frame and ctrl\_flag are elaborated.
+ctrl_flag의 값에 의존하는 , 4개 제어 입력은 다른 의미를 가지고 body frame 혹은 ground frame에서 제어 입력을 표현할 수 있다. "비행 제어에 대한 추가 설명"에서 body frame, ground frame, ctrl_flag는 상세하다.
 
 
-**CAUTION！VERY IMPORTANT：control mode has entering conditions：**
+**주의！매우 중요：제어 모드는 진입 조건을 가진다：**
 
-- Only when GPS signal is good (health\_flag >=3)，horizontal **position** control (HORI_POS) related control modes can be used.
-- Only when GPS signal is good (health\_flag >=3)，or when Gudiance system is working properly (right connection and power provided)，horizontal **velocity** control（HORI_VEL）related control modes can be used.
+- GPS 신호가 좋을 때만(health\_flag >=3), 제어 모드와 관련된 수평 **위치** 제어(HORI_POS)가 사용될 수 있다.
+- GPS 신호가 좋을 때만(health\_flag >=3) 혹은 Guidance 시스템이 적절하게 동작할 때, 제어 모드와 관련된 수평 **속력** 제어(HORI_VEL)가 사용된다.
 
-**About the gps health flag, please read "Command ID 0x00 Message Package"**
-**About control modes that contains position and velocity control，please read "Additional Explanation for Flight Control"**
+**pgs health flag에 대해서 "명령 ID 0x00 메시지 패키지"를 읽도록 하자**
+**위치와 속력 제어를 포함하는 제어 모드에 대해서 "비행 제어에 대한 추가 설명"을 읽도록 하자.**
 
 
 <br>
-##### Monitor Command Set: 0x02
+##### 모니터 명령 집합 : 0x02
 
-###### Command ID 0x00 Message Package
+###### 명령 ID 0x00 메시지 패키지
 
-Message Package content and frequency can be configured by DJI N1 assistant software. Each data item in the message package has individual frequency. The maximum message frequency is equal to the message's highest data item update frequency.
+메시지 패키지 콘텐츠와 빈도는 DJI N1 보조 소프트웨어가 설정할 수 있다. 메시지 패키지에 있는 각 데이터 아이템은 개별 빈도를 가진다. 최대 메시지 빈도는 메시지의 가장 높은 데이터 아이템 업데이트 빈도와 같다. 
 
 <table>
 <tr>
@@ -966,11 +965,11 @@ Message Package content and frequency can be configured by DJI N1 assistant soft
 </tr>
 </table>
 
-**Note: The first data item is time stamp. Following data items may or may not present in the message packages, so their offsets are *not fixed*. Here we only list the offsets when all data items are sent.**
+**주의: 첫번째 데이터 아이템은 타임 스템프다. 이후 데이터 아이템은 메시지 패킷에 있을 수도 있고 없을 수도 있다. 따라서 오프셋(offset)은 *고정된 것이 아니다.* 여기서는 모든 데이터 아이템이 보내지는 경우 오프셋을 보도록 한다.
 
 <br>
 
-Each data item in the message package is explained below:
+메시지 패키지에 있는 각 데이터 아이템은 아래와 같다 :
 
 <table>
 <tr>
@@ -1179,7 +1178,7 @@ Each data item in the message package is explained below:
 </table>
 
 <br>
-Onboard device can use following code to receive the standard message package sent by the autopilot
+onboard 장치는 autopilot으로 보내지는 표준 메시지 패키지를 받기 위해서 다음 코드를 사용할 수 있다.
 ```c
 typedef struct {
   float q0;
@@ -1258,24 +1257,23 @@ void recv_std_package (unsigned char* pbuf, unsigned int len) {
   _recv_std_data(*valid_flag, 0x0001, recv_sdk_std_data.ctrl_device,                pbuf,data_len);
 }
 ```
-**Note: All the structs in the document requires 1 byte alignment (for example using `typedef __attribute__((__packed__))` struct. Developers must make sure their structs are 1-byte aligned.**
+**주의: 이 문서에 있는 모든 구조체는 1 byte alignment가 필요하다.(`typedef __attribute__((__packed__))` 구조체를 사용한다) 개발자는 반드시 구조체가 1-byte aligned임을 확인해야 한다.**
 
 <br>
 
-** Further Explanation to The Content **
+** 콘텐츠에 대한 추가 설명 **
 
-_alti_ is the result of barometer-IMU fusion in the unit of pressure. While _height_ fuses ultrasonic sensor, barometer and IMU, it means the relative distance in meter from Matrice 100 to the takeoff spot. If the Matrice 100 has no ultrasonic sensor (no Gudiance installed), or it has ultrasonic sensor but its distance to the ground is larger than 3 meters (the measurement of ultrasonic sensor will be unstable at this distance), than _height_ is supported by barometer and IMU only. So developers may notice that Matrice 100 will draft at height above 3 meters, because barometer is very inaccurate indoor. It is very important to remember if developer wants to do indoor flight control.
+_alti_는 압력 단위에서 기압계-IMU 합친 결과이다. 반면에 _height_ 는 울트라소닉 센서, 기압계, IMU를 종합한 것이며 이는 Matrice 100에서 출발 위치까지 미터로 표현하는 상대적인 거리를 의미한다. Matrice 100이 울트라 소닉 센서가 없다면(Gudiance가 설치되어 있지 않다면), 울트라소닉 센서가 있더라도 지상까지 거리가 3미터를 넘는다면(3미터 이상에서 울트라소닉 센서는 일정하지 않을 수 있다) _height_는 기압계와 IMU만 이용한다. 따라서 개발자는 Matrice 100이 3미터 이상 높이에서 draft된다는 것을 알고 있어야하는데 왜냐하면 기압계는 실외에서는 정확하지 않기 때문이다. 개발자가 실외에서 비행 제어를 하고자 한다면 명심하고 있어야 한다.
 
-Since _height_ is a relative distance, so it wouldn't refreash to meaningful value if Matrice does not takeoff after being powered on.
+_height_ 는 상대적으로 거리이기 때문에, Matrice를 켜고 나서 출발하지 않으면 의미있는 값으로 업데이트하지 않을 것이다.
 
-The unit of _lati_, _longti_ in _GPS_ information is **radian**.
-
-The acceleration and angular velocity sent from IMU is processed by signal processing algorithm. We will add flags in the furture version to enable sending raw data out. 
+_GPS_ 정보에서 _lati_와 _longti_의 단위는 **라디언(radian)**이다.
+IMU로부터 받은 가속과 angular 속력은 신호처리 알고리즘으로 처리한다. 향후 버전에서 raw data를 보내는 것을 가능하게 하기 위해 flag를 추가할 것이다.
 
 <br>
-###### Command ID 0x01: Control Authority Change Notification
+###### 명령 ID 0x01: 제어 인증 변경 알림(Control Authority Change Notification)
 
-Onboard device has the lowers control priority. Its control authority can be taken over by RC and mobile device at any time. Once the control authority changed, a notification message will be sent to the onboard device by the autopilot.
+Onboard 장치는 낮은 제어 우선순위를 가진다. 제어 인증은 언제든 RC나 모바일 장치로 넘어갈 수 있다. 일단 제어 권한이 변경되면 autopilot은 알림 메시지를 onboard 장치로 보낸다.
 
 |Data Type|Offset(byte)|Size(byte)|Description|
 |---------|------------|----------|-----------|
@@ -1283,9 +1281,9 @@ Onboard device has the lowers control priority. Its control authority can be tak
 |Return Data|0|0|No return data|
 
 <br>
-###### Command ID 0x02: Data transparent transmission (from mobile device to airborne equipment)
+###### 명령 ID 0x02: 데이터 전송 (Data transparent transmission (모바일 장치 -> 비행 중인 장비)
 
-The upstream bandwidth from mobile device to airborne equipment is around 1KB/s
+모바일 장치에서 비행중인 장비로의 업스트림 대역폭은 대략 1KB/s이다.
 
 |Data Type|Offset(byte)|Size(byte)|Description|
 |---------|------------|----------|-----------|
@@ -1294,9 +1292,9 @@ The upstream bandwidth from mobile device to airborne equipment is around 1KB/s
 
 ---
 <br>
-## Additional Explanation for Flight Control
+## 비행 제어에 대한 추가 설명
 
-### Explanation of Coordinate Frames
+### Coordinate Frames에 대한 설명
 
 1. Body Frame
 
@@ -1307,14 +1305,14 @@ The upstream bandwidth from mobile device to airborne equipment is around 1KB/s
   + East - y axis
   + Down - z axis
 
-Therefore, in the ground frame, a general definition for craft orientation is North = 0 degree, East = 90 degree, West = -90 degree and South can be either 180 degree or -180 degree.
+따라서 ground frame에서 비행 방향에 대한 일반적인 정의는 North = 0도, East = 90도, West = -90도, South = 180 or -180도가 된다.
 
-**Note: The direction of ground frame is not natural for height control. So we adjust the direction of vertical control in order to make height and vertical velocity to be positive upwards, in other words, positive velocity makes MATRICE 100 ascend. This adjustment does not change the direction and the order of the other two axis.**
+**주의: ground frame의 방향은 높이 제어를 위한 속성은 아니다. 높이와 수직 속력을 +값으로 만들려면 수직 제어의 방향을 조정해야한다. 다시 말하면 + 속도는 MATRICE 100가 올라가게 한다. 이렇게 조정하는 경우 다른 2축 방향으로 변경과는 무관하다.**
 
 <br>
-### Explanation of ctrl mode flag
+### ctrl mode flag 설명
 
-To control the spatial movement of MATRICE 100, we split control inputs into three parts: horizontal control, vertical control and yaw control. Each part has several sub modules.
+MATRICE 100의 공간 이동을 제어하기 위해서, 제어 입력을 3개 부분으로 나눴다.(수평 제어, 수직 제어, yaw 제어) 각 파트는 여러 하부 모듈을 가진다.
 
 <table>
 <tr>
@@ -1386,9 +1384,9 @@ The ctrl mode flag is divided into 8 bits:
 </tr>
 <table>
 
-`HORI_FRAME` and `YAW_FRAME` can be an arbitrary if the corresponding mode does not need a specify frame. 
+`HORI_FRAME` 와 `YAW_FRAME`는 연관된 모드가 구체적인 frame이 필요없다면 임의 값이 된다.
 
-By specifying `ctrl_mode_flag`, 14 control modes can be constructed (`ctrl_mode_flag` is represented as an 8-bit binary number here. The bit position with X means that this certain mode doesn't depend on the bit of this position, it can be either 0 or 1. Here "0b" means we represent the flag with binary number, the last 8 bits constructs a 0-255 integer):
+`ctrl_mode_flag` 구체화함으로써 14개 제어 모드를 구성할 수 있다(`ctrl_mode_flag`는 8-bit 2진수로 표현한다. X의 bit 위치는 특정 모드가 이 위치 bit값에 관련이 없다는 뜻이다. 0이나 1이 될 수 있다. 여기서 "0b"는 2진수의 flag를 표현한다. 마지막 8 bit로 0-255 정수 값을 구성한다.):
 
 |No.|Combinations|Input Data Range<br>(throttle/pitch&roll/yaw)|ctrl_mode_flag|
 |---|------------|---------------------------------------------|--------------|
@@ -1407,11 +1405,11 @@ By specifying `ctrl_mode_flag`, 14 control modes can be constructed (`ctrl_mode_
 |13|VERT_THRUST<br>HORI_ATTI_TILT_ANG<br>YAW_ANG|10 ~ 100 (use with precaution)<br>-30 degree ~ 30 degree<br>-180 degree ~ 180 degree|0b001000XX|
 |14|VERT_THRUST<br>HORI_ATTI_TILT_ANG<br>YAW_RATE|10 ~ 100 (use with precaution)<br>-30 degree ~ 30 degree<br>-100 degree/s ~ 100 degree/s|0b001010XX|
 
-The input of HORI_POS is a position offset instead a actual position. This design aims to take both GPS flight and vision-based flight into account. If the developer wants to use GPS navigation, the GPS information sent by Matrice 100 can be used to calculate position offset. While in vision-based flight application, developers should have their own positioning device (along with Gudiance or GPS to provide velocity measurement) to do position control. For example, [xuhao1 SDK package](https://github.com/xuhao1/dji_sdk/blob/master/src/modules/dji_services.cpp) realizes a GPS-based position control where target position can be passed as GPS coordinate.
+HORI_POS의 입력은 실제 위치 대신에 오프셋 위치이다. 이런 설계는 GPS 비행과 비젼기반 비행을 고려한 것이다. 만약 개발자가 GPS 네비게이션을 사용하고자 한다면 Matrice 100이 보내는 GPS 정보는 위치 오프셋을 계산하는데 사용할 수 있다. 반면에 비젼기반 비행 app에서 개발자는 위치 제어를 하기 위해 자신의 위치관련 장치를 가지고 있어야만 한다.(속력 측정을 위해 Gudiance 혹은 GPS) 예를 들자면 [xuhao1 SDK package](https://github.com/xuhao1/dji_sdk/blob/master/src/modules/dji_services.cpp)는 GPS 기반 위치 제어를 구현했다. GPS 좌표를 계산해서 타겟 위치를 전달받을 수 있다. 
 
-We suggest developers do not user VERT_POS control mode indoor when Matrice 100 does not have Guidance installed or the flight height is larget than 3 meters. Because in indoor environment, barometer can be very inaccurate, the vertical controller may fail to keep the height of Matrice 100. 
+Matrice 100이 Guidance가 없거나 비행 높이가 4미터 보다 높은 경우, 실내에서 VERT_POS 제어모드를 사용하지 않는 것을 권한다. 실내 환경에서 기압계는 정확하지 않기 때문에 수직 컨트롤러는 Matrice 100의 높이를 유지하기 어렵다.
 
-**CAUTION！VERY IMPORTANT：control mode has entering conditions：**
+**주의！아주 중요 : 제어 모드는 다음과 같은 진입 조건이 있다 : **
 
-- Only when GPS signal is good (health\_flag >=3)，horizontal **position** control (HORI_POS) related control modes can be used.
-- Only when GPS signal is good (health\_flag >=3)，or when Gudiance system is working properly (right connection and power provided)，horizontal **velocity** control（HORI_VEL）related control modes can be used.
+- GPS 신호가 좋을 때만 (health\_flag >=3), 제어 모드와 관련된 수평 **위치** 제어(HORI_POS)를 사용할 수 있다.
+- GPS 신호가 좋을 때만 ((health\_flag >=3)) 혹은 Gudiance 시스템이 제대로 동작할 때(연결이 제대로 되어 있고 전원을 공급받는 경우), 제어 모드와 관련된 수평 **속력** 제어(HORI_VEL)를 사용할 수 있다.
